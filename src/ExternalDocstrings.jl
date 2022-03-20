@@ -45,6 +45,8 @@ file are executed in the same session).
 is inserted at the end of code block if it does not look like a REPL session and does not
 already have `# output`.
 
+(3) `<kbd>KEY</kbd>` is replaced by `_KEY_`.
+
 ## Tips
 
 To enable syntax highlighting without doctest, use use slightly different code fence
@@ -111,6 +113,7 @@ function transform_docstring(doc::AbstractString, label)
                 end
             end
         else
+            ln = replace(ln, r"<kbd>(.*?)</kbd>" => s"_\1_")
             print(output, ln, "\n")
         end
     end
