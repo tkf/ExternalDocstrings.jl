@@ -47,12 +47,23 @@ already have `# output`.
 
 ## Tips
 
+### Disable doctest
+
 To enable syntax highlighting without doctest, use use slightly different code fence
 notations such as
 
     ```JULIA
     this_is_not_doctested() = nothing
     ```
+
+### Vendoring
+
+ExternalDocstrings.jl written as a single-source package to help vendoring.  For example, it
+can be installed simply by:
+
+```bash
+wget https://raw.githubusercontent.com/tkf/ExternalDocstrings.jl/main/src/ExternalDocstrings.jl -O src/ExternalDocstrings.jl
+```
 """
 module ExternalDocstrings
 #=
