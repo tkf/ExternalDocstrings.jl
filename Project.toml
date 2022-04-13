@@ -1,7 +1,7 @@
 name = "ExternalDocstrings"
 uuid = "e189563c-0753-4f5e-ad5c-be4293c83fb4"
 authors = ["Takafumi Arakaki <aka.tkf@gmail.com> and contributors"]
-version = "0.1.1-DEV"
+version = "0.1.1"
 
 [compat]
 julia = "1"
