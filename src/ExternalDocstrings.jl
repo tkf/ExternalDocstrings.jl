@@ -140,15 +140,18 @@ function define_docstrings(pkg::Module)
         return
     end
     srcdir = dirname(pathof(pkg))
-    docstrings = [nameof(pkg) => joinpath(dirname(srcdir), "README.md")]
+    docstrings = Pair{Union{Symbol,Expr},String}[]
+    push!(docstrings, nameof(pkg) => joinpath(dirname(srcdir), "README.md"))
     docsdir = joinpath(srcdir, "docs")
     if isdir(docsdir)
         for filename in readdir(docsdir)
             stem, ext = splitext(filename)
             ext == ".md" || continue
-            name = Symbol(stem)
-            name in names(pkg, all = true) || continue
-            push!(docstrings, name => joinpath(docsdir, filename))
+            expr = Meta.parse(stem)
+            if Meta.isexpr(expr, :macrocall, 2)
+                expr = expr.args[1]
+            end
+            push!(docstrings, expr => joinpath(docsdir, filename))
         end
     end
     n_auto_labels = 0
