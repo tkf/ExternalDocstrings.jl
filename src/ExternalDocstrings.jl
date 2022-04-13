@@ -131,6 +131,29 @@ function transform_docstring(doc::AbstractString, label)
     return String(take!(output))
 end
 
+function resolve(name::Symbol, m)
+    v = try
+        getproperty(m, name)
+    catch
+        return nothing
+    end
+    return Some{Any}(v)
+end
+
+function resolve(ex::Expr, m)
+    if Meta.isexpr(ex, :., 2)
+        sub = resolve(ex.args[1], m)
+        sub === nothing && return sub
+        property = ex.args[2]
+        if property isa QuoteNode
+            property = property.value
+        end
+        return resolve(property, something(sub))
+    else
+        error("unsupported expression: ", ex)
+    end
+end
+
 function define_docstrings(pkg::Module)
     if pathof(pkg) === nothing
         @warn """
@@ -140,15 +163,19 @@ function define_docstrings(pkg::Module)
         return
     end
     srcdir = dirname(pathof(pkg))
-    docstrings = [nameof(pkg) => joinpath(dirname(srcdir), "README.md")]
+    docstrings = Pair{Union{Symbol,Expr},String}[]
+    push!(docstrings, nameof(pkg) => joinpath(dirname(srcdir), "README.md"))
     docsdir = joinpath(srcdir, "docs")
     if isdir(docsdir)
         for filename in readdir(docsdir)
             stem, ext = splitext(filename)
             ext == ".md" || continue
-            name = Symbol(stem)
-            name in names(pkg, all = true) || continue
-            push!(docstrings, name => joinpath(docsdir, filename))
+            expr = Meta.parse(stem)
+            if Meta.isexpr(expr, :macrocall, 2)
+                expr = expr.args[1]
+            end
+            resolve(expr, pkg) === nothing && continue
+            push!(docstrings, expr => joinpath(docsdir, filename))
         end
     end
     n_auto_labels = 0
