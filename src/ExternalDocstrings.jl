@@ -131,29 +131,6 @@ function transform_docstring(doc::AbstractString, label)
     return String(take!(output))
 end
 
-function resolve(name::Symbol, m)
-    v = try
-        getproperty(m, name)
-    catch
-        return nothing
-    end
-    return Some{Any}(v)
-end
-
-function resolve(ex::Expr, m)
-    if Meta.isexpr(ex, :., 2)
-        sub = resolve(ex.args[1], m)
-        sub === nothing && return sub
-        property = ex.args[2]
-        if property isa QuoteNode
-            property = property.value
-        end
-        return resolve(property, something(sub))
-    else
-        error("unsupported expression: ", ex)
-    end
-end
-
 function define_docstrings(pkg::Module)
     if pathof(pkg) === nothing
         @warn """
@@ -174,7 +151,6 @@ function define_docstrings(pkg::Module)
             if Meta.isexpr(expr, :macrocall, 2)
                 expr = expr.args[1]
             end
-            resolve(expr, pkg) === nothing && continue
             push!(docstrings, expr => joinpath(docsdir, filename))
         end
     end
